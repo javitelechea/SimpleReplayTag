@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f1117" />
+  <title>Simple Replay Tag</title>
+  <meta name="description" content="Botonera de tagging en vivo para Simple Replay. Ventanas de código, reloj de sesión y export XML." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <link rel="stylesheet" href="css/index.css?v=14" />
+</head>
+<body>
+  <header id="app-header">
+    <div class="header-left" id="logo-home" title="Ir al inicio" data-i18n-title="header.goHome">
+      <div class="logo-mark" aria-hidden="true">SR</div>
+      <h1 class="app-title header-title-full">
+        <span class="app-title-simple">simple</span><span class="app-title-replay">replay</span><span class="app-title-tag">TAG</span>
+      </h1>
+    </div>
+    <div class="header-right">
+      <div class="lang-toggle" role="group" aria-label="Idioma" data-i18n-aria="header.lang">
+        <button type="button" id="btn-lang-es" data-lang="es">ES</button>
+        <button type="button" id="btn-lang-en" data-lang="en">EN</button>
+      </div>
+      <button id="btn-open-buttonboards" type="button" class="btn btn-ghost btn-sm" data-i18n="menu.codeWindows">Ventanas de código</button>
+    </div>
+  </header>
+
+  <div id="app-shell">
+    <section id="view-home" class="view home-view">
+      <div class="home-hero">
+        <div class="card">
+          <h2 data-i18n="home.activeBoard">Ventana activa</h2>
+          <div id="home-board-name" class="board-name"></div>
+          <div id="home-board-preview" class="board-preview"></div>
+          <div class="home-actions">
+            <button id="btn-new-session" type="button" class="btn btn-primary" data-i18n="home.newSession">Nueva sesión</button>
+            <button id="btn-home-edit-board" type="button" class="btn btn-outline" data-i18n="home.editBoard">Editar botonera</button>
+            <button id="btn-home-boards" type="button" class="btn btn-outline" data-i18n="home.codeWindows">Ventanas de código</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2 data-i18n="home.recentSessions">Últimas sesiones</h2>
+          <div id="home-session-list" class="session-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-session" class="view session-view hidden">
+      <div class="session-toolbar">
+        <button id="btn-session-home" type="button" class="btn btn-ghost btn-sm" data-i18n="session.backHome">Inicio</button>
+        <input id="session-name" class="input session-name-input" type="text" data-i18n-placeholder="session.namePlaceholder" />
+        <div class="clock-block">
+          <div>
+            <div id="clock-display" class="clock-display">0:00.0</div>
+            <div id="clock-status" class="clock-status" data-i18n="session.idleHint">Iniciá el reloj para taggear</div>
+          </div>
+          <button id="btn-clock-start" type="button" class="btn btn-success btn-sm" data-i18n="session.start">Iniciar</button>
+          <button id="btn-clock-pause" type="button" class="btn btn-outline btn-sm hidden" data-i18n="session.pause">Pausar</button>
+          <button id="btn-clock-stop" type="button" class="btn btn-danger btn-sm hidden" data-i18n="session.stop">Detener</button>
+        </div>
+        <button id="btn-undo" type="button" class="btn btn-ghost btn-sm" data-i18n="session.undo">Deshacer</button>
+        <button id="btn-export-xml" type="button" class="btn btn-outline btn-sm" data-i18n="session.exportXml">Exportar XML</button>
+      </div>
+
+      <div class="session-body">
+        <div id="tag-bar" class="tag-bar">
+          <div class="tag-bar-header">
+            <div class="tag-rows-wrap">
+              <div class="tag-team-row">
+                <div class="tag-col-label" data-i18n="tag.own">Propio</div>
+                <div id="tag-buttons-a" class="tag-buttons-row"></div>
+              </div>
+              <div class="tag-team-row tag-row-rival">
+                <div class="tag-col-label" data-i18n="tag.rival">Rival</div>
+                <div id="tag-buttons-b" class="tag-buttons-row"></div>
+              </div>
+            </div>
+            <div class="tag-tools">
+              <button id="btn-toggle-tag-editor" class="btn btn-xs btn-ghost tag-editor-toggle" title="Editar tags" data-i18n-title="tag.editTags">✏️</button>
+              <button id="btn-voice-tag" class="btn btn-xs btn-ghost voice-tag-toggle" type="button"
+                title="Micrófono: clic para dejar activo, mantener para hablar"
+                data-i18n-title="voiceTag.buttonTitle" data-i18n-aria="voiceTag.buttonTitle" aria-pressed="false">
+                <svg class="voice-tag-toggle__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M6.5 11.5a5.5 5.5 0 0 0 11 0M12 17v4M9 21h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="tag-editor-inline" class="tag-editor-inline" style="display:none;">
+            <div class="tag-editor-inline-row">
+              <label class="editor-lbl" data-i18n="tag.name">Nombre</label>
+              <input id="edit-tag-label" type="text" class="input-sm" />
+              <label class="editor-lbl" data-i18n="tag.pre">Pre</label>
+              <input id="edit-tag-pre" type="number" class="input-sm tag-edit-num" min="0" max="30" />
+              <label class="editor-lbl" data-i18n="tag.post">Post</label>
+              <input id="edit-tag-post" type="number" class="input-sm tag-edit-num" min="0" max="30" />
+              <label class="editor-lbl" data-i18n="tag.mode">Modo</label>
+              <div class="tag-editor-toggle-group" data-target-input="edit-tag-capture-mode" role="group">
+                <button type="button" class="tag-editor-toggle-btn active" data-value="fixed" data-i18n="tag.fixed">Fijo</button>
+                <button type="button" class="tag-editor-toggle-btn" data-value="manual" data-i18n="tag.manual">Manual</button>
+              </div>
+              <div class="tag-editor-toggle-group" data-target-input="edit-tag-row" role="group">
+                <button type="button" class="tag-editor-toggle-btn active" data-value="top" data-i18n="tag.own">Propio</button>
+                <button type="button" class="tag-editor-toggle-btn" data-value="bottom" data-i18n="tag.rival">Rival</button>
+              </div>
+              <input id="edit-tag-capture-mode" type="hidden" value="fixed" />
+              <input id="edit-tag-row" type="hidden" value="top" />
+              <label class="editor-lbl" data-i18n="tag.hotkey">Atajo</label>
+              <button type="button" id="edit-tag-hotkey" class="btn btn-xs bb-hotkey-capture tag-edit-hotkey" data-hotkey=""></button>
+              <input id="edit-tag-hotkey-value" type="hidden" value="" />
+              <label class="editor-lbl" for="edit-tag-voice-aliases" data-i18n="tag.voiceAliases">Alias de voz</label>
+              <input id="edit-tag-voice-aliases" type="text" class="input-sm tag-edit-voice-aliases"
+                data-i18n-placeholder="tag.voiceAliasesPlaceholder" data-i18n-title="tag.voiceAliasesHelp" />
+              <button id="btn-move-tag-prev" type="button" class="btn btn-xs btn-ghost tag-editor-move" data-dir="-1" title="Antes" data-i18n-title="tag.moveBefore" hidden>←</button>
+              <button id="btn-move-tag-next" type="button" class="btn btn-xs btn-ghost tag-editor-move" data-dir="1" title="Después" data-i18n-title="tag.moveAfter" hidden>→</button>
+              <button id="btn-save-tag" class="btn btn-xs btn-primary" data-i18n="tag.save">Guardar</button>
+              <button id="btn-delete-tag" class="btn btn-xs btn-danger">🗑️</button>
+              <button id="btn-cancel-tag-edit" class="btn btn-xs btn-ghost">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <aside id="event-rail" class="event-rail">
+          <div class="event-rail-head">
+            <span data-i18n="session.events">Eventos</span>
+            <button id="btn-toggle-events" type="button" class="btn btn-ghost btn-xs" data-i18n="session.hideEvents">Ocultar eventos</button>
+          </div>
+          <div id="event-list" class="event-list"></div>
+        </aside>
+      </div>
+    </section>
+  </div>
+
+  <div id="modal-buttonboards" class="modal hidden">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-box modal-md" id="modal-buttonboards-box">
+      <div id="bb-browser" class="bb-browser">
+        <div class="bb-modal-header">
+          <h3><span data-i18n="bb.title">Ventanas de código</span></h3>
+          <button id="btn-close-buttonboards" type="button" class="btn btn-ghost btn-sm" style="margin-left:auto;" data-i18n-aria="generic.close">✕</button>
+        </div>
+        <div class="bb-section">
+          <div class="bb-section-title" data-i18n="bb.systemTemplates">Templates del sistema</div>
+          <div id="bb-system-list" class="bb-list"></div>
+        </div>
+        <div class="bb-section">
+          <div class="bb-section-title" data-i18n="bb.myTemplates">Mis templates</div>
+          <div id="bb-user-list" class="bb-list"></div>
+          <button id="btn-bb-new-template" type="button" class="btn btn-sm btn-primary" style="margin-top:10px;" data-i18n-html="bb.newTemplateBtn">＋ Nuevo template</button>
+        </div>
+        <div class="bb-section bb-save-section">
+          <button id="btn-bb-save-as-template" type="button" class="btn btn-sm btn-outline" style="width:100%;">
+            <span data-i18n="bb.saveCurrentAsTemplate">Guardar ventana de código actual como template</span>
+          </button>
+          <div style="display:flex;gap:8px;">
+            <button id="btn-bb-import" type="button" class="btn btn-sm btn-ghost" data-i18n="bb.import">Importar JSON</button>
+            <button id="btn-bb-export-active" type="button" class="btn btn-sm btn-ghost" data-i18n="bb.export">Exportar JSON</button>
+          </div>
+          <input id="input-bb-import" type="file" accept="application/json,.json" hidden />
+        </div>
+      </div>
+
+      <div id="bb-editor" class="bb-editor" style="display:none;">
+        <div class="bb-editor-header">
+          <button type="button" id="btn-bb-back-to-list" class="btn btn-ghost btn-sm bb-editor-back" data-i18n-html="bb.backBtn">← Volver</button>
+          <strong id="bb-editor-title" data-i18n="bb.editTemplate">Editar template</strong>
+          <button type="button" id="btn-bb-editor-close" class="btn btn-ghost btn-xs" data-i18n-aria="bb.closeEditor">✕</button>
+        </div>
+        <div class="bb-editor-body">
+          <div id="bb-editor-based-row" class="bb-editor-based-row" hidden>
+            <label class="form-label bb-editor-based-label">
+              <span data-i18n="bb.basedOn">Basada en</span>
+              <select id="bb-editor-based-on" class="input"></select>
+            </label>
+          </div>
+          <label class="form-label">
+            <span data-i18n="bb.name">Nombre</span>
+            <input id="bb-editor-name" type="text" class="input" data-i18n-placeholder="bb.namePlaceholder" />
+          </label>
+          <div id="bb-editor-buttons-list" class="bb-editor-builder"></div>
+        </div>
+        <div class="bb-editor-actions">
+          <button id="btn-bb-editor-save" class="btn btn-sm btn-primary" data-i18n="bb.saveTemplate">Guardar template</button>
+          <button id="btn-bb-editor-cancel" class="btn btn-sm btn-ghost" data-i18n="modal.cancel">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container"></div>
+  <div id="voice-tag-indicator" class="voice-tag-indicator" aria-hidden="true">
+    <span class="voice-tag-indicator__dot"></span>
+    <span data-i18n="voiceTag.listening">Escuchando… decí el nombre de la etiqueta</span>
+  </div>
+
+  <script type="module" src="js/main.js?v=14"></script>
+</body>
+</html>
